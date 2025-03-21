@@ -53,11 +53,14 @@ def main():
         )
         sample = sample_fn(
             model,
-            (args.batch_size, 3, args.image_size, args.image_size),
+            (args.batch_size, 1, args.image_size, args.image_size), #MODIFIED FROM 3 TO 1
             clip_denoised=args.clip_denoised,
             model_kwargs=model_kwargs,
         )
-        sample = ((sample + 1) * 127.5).clamp(0, 255).to(th.uint8)
+        #sample = ((sample + 1) * 127.5).clamp(0, 255).to(th.uint8) #MODIFIED - Taken Out
+        #sample = (sample + 1) / 2  # Rescale back to [0,1] (only if needed)
+        sample = sample.to(th.float32)  # Ensure it's kept in float32\
+
         sample = sample.permute(0, 2, 3, 1)
         sample = sample.contiguous()
 
@@ -79,7 +82,8 @@ def main():
         label_arr = label_arr[: args.num_samples]
     if dist.get_rank() == 0:
         shape_str = "x".join([str(x) for x in arr.shape])
-        out_path = os.path.join(logger.get_dir(), f"samples_{shape_str}.npz")
+        #out_path = os.path.join(logger.get_dir(), f"samples_{shape_str}.npz")
+        out_path = os.path.join("/scratch/astro/domingos.pinheiro/npy_guided-diffusion/samples", f"samples_{shape_str}.npz")
         logger.log(f"saving to {out_path}")
         if args.class_cond:
             np.savez(out_path, arr, label_arr)
