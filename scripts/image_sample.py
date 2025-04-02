@@ -83,7 +83,12 @@ def main():
     if dist.get_rank() == 0:
         shape_str = "x".join([str(x) for x in arr.shape])
         #out_path = os.path.join(logger.get_dir(), f"samples_{shape_str}.npz")
-        out_path = os.path.join("/scratch/astro/domingos.pinheiro/npy_guided-diffusion/samples", f"samples_{shape_str}.npz")
+        #out_path = os.path.join("/scratch/astro/domingos.pinheiro/npy_guided-diffusion/samples", f"samples_{shape_str}.npz")
+        
+        model_step = args.model_path.split("_")[-1].replace(".pt", "")
+        out_path = os.path.join("/scratch/astro/domingos.pinheiro/npy_guided-diffusion/samples",
+            f"samples_step{model_step}_{shape_str}.npz")
+        
         logger.log(f"saving to {out_path}")
         if args.class_cond:
             np.savez(out_path, arr, label_arr)
