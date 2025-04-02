@@ -806,6 +806,23 @@ class GaussianDiffusion:
                 ModelMeanType.EPSILON: noise,
             }[self.model_mean_type]
             assert model_output.shape == target.shape == x_start.shape
+            
+            # NORMALIZE MSE
+            
+            # 🧠 Compute per-sample max 
+            eps = 1e-8 # Avoid division by zero
+            max_val = th.amax(x_start.view(x_start.shape[0], -1), dim=1, keepdim=True).clamp(min=eps)
+            max_val = max_val.view(-1, 1, 1, 1)
+
+            terms["mse"] = mean_flat(((target - model_output) ** 2) / (max_val ** 2)) # Normalized MSE
+            if "vb" in terms:
+                terms["loss"] = terms["mse"] + terms["vb"]
+            else:
+                terms["loss"] = terms["mse"]
+        else:
+            raise NotImplementedError(self.loss_type)
+            
+            '''
             terms["mse"] = mean_flat((target - model_output) ** 2)
             if "vb" in terms:
                 terms["loss"] = terms["mse"] + terms["vb"]
@@ -813,6 +830,7 @@ class GaussianDiffusion:
                 terms["loss"] = terms["mse"]
         else:
             raise NotImplementedError(self.loss_type)
+            '''
 
         return terms
 
